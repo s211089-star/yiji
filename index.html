@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遗迹载重匹配与计算工具</title>
+    <title>遗迹载重匹配与计算工具（无上限动态版）</title>
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -64,6 +64,18 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
             margin-top: 6px;
+        }
+
+        .formula-box {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: var(--accent-cyan);
+            margin-top: 10px;
+            text-align: center;
+            line-height: 1.5;
         }
 
         /* Relic Type Selection Cards */
@@ -383,8 +395,12 @@
 <body>
     <div class="container">
         <header>
-            <h1>🏛️ 遗迹载重匹配与计算工具</h1>
-            <p>实时精准计算遗迹挂机载重需求、挂机时长及下一节点阶梯差距</p>
+            <h1>🏛️ 遗迹载重匹配与计算工具（无限阶梯版）</h1>
+            <p>基于精准数学模型公式，打破旧版限制，支持任意超高载重与任意挂机时长无上限匹配</p>
+            <div class="formula-box">
+                📐 <strong>数学原理：</strong> 每30分钟所需门槛载重 ΔLoad = 速率(资源/分) × 30分 / 1,000,000 (M)<br>
+                可匹配次数 count = ⌊ 输入载重 ÷ 单次门槛载重 ⌋ ，彻底解除阶梯上限！
+            </div>
         </header>
 
         <!-- Relic Type Selection Header -->
@@ -392,22 +408,22 @@
             <div class="relic-card active" data-type="small">
                 <div class="title">小型遗迹</div>
                 <div class="rate">24,500 资源/分钟</div>
-                <div class="badge">基础级</div>
+                <div class="badge">每30分钟需 0.735M</div>
             </div>
             <div class="relic-card" data-type="medium">
                 <div class="title">中型遗迹</div>
                 <div class="rate">44,200 资源/分钟</div>
-                <div class="badge">进阶级</div>
+                <div class="badge">每30分钟需 1.326M</div>
             </div>
             <div class="relic-card" data-type="large">
                 <div class="title">大型遗迹</div>
                 <div class="rate">72,700 资源/分钟</div>
-                <div class="badge">高级</div>
+                <div class="badge">每30分钟需 2.181M</div>
             </div>
             <div class="relic-card" data-type="mega">
                 <div class="title">巨型遗迹</div>
                 <div class="rate">118,000 资源/分钟</div>
-                <div class="badge">史诗级</div>
+                <div class="badge">每30分钟需 3.540M</div>
             </div>
         </div>
 
@@ -422,7 +438,7 @@
             <div class="panel-title">📦 输入您的部队总载重 (M)</div>
             <div class="input-group">
                 <div class="input-wrapper">
-                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="calculateLoadMode()">
+                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58 或 250.0" step="0.01" min="0" value="7.58" oninput="calculateLoadMode()">
                     <span class="unit">M 载重</span>
                 </div>
                 <div class="quick-btns">
@@ -430,6 +446,7 @@
                     <button class="btn-chip" onclick="addLoad(5)">+5M</button>
                     <button class="btn-chip" onclick="addLoad(10)">+10M</button>
                     <button class="btn-chip" onclick="addLoad(50)">+50M</button>
+                    <button class="btn-chip" onclick="addLoad(100)">+100M</button>
                     <button class="btn-chip clear" onclick="clearLoad()">清空</button>
                 </div>
             </div>
@@ -470,11 +487,11 @@
 
         <!-- TAB 2: Target Mode -->
         <div id="targetMode" class="panel hidden">
-            <div class="panel-title">🎯 选择期望挂机时长或获取次数</div>
+            <div class="panel-title">🎯 选择期望挂机时长或获取次数（支持任意大数值）</div>
             <div class="input-group">
                 <label class="input-label">选择目标获取次数（每30分钟计算1次）：</label>
                 <div class="input-wrapper">
-                    <input type="number" id="targetCountInput" class="custom-input" min="1" max="58" value="10" oninput="calculateTargetMode()">
+                    <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="calculateTargetMode()">
                     <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小时)</span>
                 </div>
                 <div class="quick-btns">
@@ -483,6 +500,8 @@
                     <button class="btn-chip" onclick="setTargetCount(16)">8小时 (16次)</button>
                     <button class="btn-chip" onclick="setTargetCount(24)">12小时 (24次)</button>
                     <button class="btn-chip" onclick="setTargetCount(48)">24小时 (48次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(96)">48小时 (96次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(144)">72小时 (144次)</button>
                 </div>
             </div>
 
@@ -507,8 +526,8 @@
 
         <!-- Tier Table Comparison Panel -->
         <div class="panel">
-            <div class="panel-title">📊 当前遗迹阶梯全量对照表</div>
-            <div class="table-container">
+            <div class="panel-title">📊 阶梯对比动态列表 (自动对齐当前匹配位置)</div>
+            <div class="table-container" id="tableContainer">
                 <table id="tierTable">
                     <thead>
                         <tr>
@@ -529,34 +548,38 @@
     </div>
 
     <script>
-        // Full Dataset provided directly from Excel sheets
+        // Relic definitions with exact linear step size per 30 minutes
         const RELIC_DATA = {
             small: {
                 name: '小型遗迹',
                 ratePerMin: 24500,
-                steps: [0.74, 1.47, 2.21, 2.94, 3.68, 4.41, 5.15, 5.88, 6.62, 7.35, 8.09, 8.82, 9.56, 10.29, 11.03, 11.76, 12.5, 13.23, 13.97, 14.7, 15.44, 16.17, 16.91, 17.64, 18.38, 19.11, 19.85, 20.58, 21.32, 22.05, 22.79, 23.52, 24.26, 24.99, 25.73, 26.46, 27.2, 27.93, 28.67, 29.4, 30.14, 30.87, 31.61, 32.34, 33.08, 33.81, 34.55, 35.28, 36.02, 36.75, 37.49, 38.22, 38.96, 39.69, 40.43, 41.16, 41.9, 42.63]
+                stepLoad: 0.735 // 24,500 * 30 / 1,000,000 = 0.735 M
             },
             medium: {
                 name: '中型遗迹',
                 ratePerMin: 44200,
-                steps: [1.33, 2.66, 3.98, 5.31, 6.63, 7.96, 9.29, 10.61, 11.94, 13.26, 14.59, 15.92, 17.24, 18.57, 19.89, 21.22, 22.55, 23.87, 25.2, 26.53, 27.85, 29.18, 30.51, 31.83, 33.16, 34.48, 35.81, 37.14, 38.46, 39.79, 41.11, 42.44, 43.77, 45.09, 46.42, 47.74, 49.07, 50.4, 51.72, 53.05, 54.37, 55.7, 57.03, 58.35, 59.68, 61.01, 62.33, 63.66, 64.98, 66.31, 67.64, 68.96, 70.29, 71.61, 72.94, 74.27, 75.59, 76.91]
+                stepLoad: 1.326 // 44,200 * 30 / 1,000,000 = 1.326 M
             },
             large: {
                 name: '大型遗迹',
                 ratePerMin: 72700,
-                steps: [2.19, 4.37, 6.55, 8.73, 10.91, 13.09, 15.27, 17.45, 19.63, 21.81, 24.0, 26.18, 28.36, 30.54, 32.72, 34.9, 37.08, 39.26, 41.44, 43.62, 45.8, 47.98, 50.16, 52.34, 54.52, 56.7, 58.88, 61.06, 63.24, 65.42, 67.6, 69.78, 71.96, 74.14, 76.32, 78.5, 80.68, 82.86, 85.04, 87.22, 89.4, 91.58, 93.76, 95.94, 98.12, 100.3, 102.48, 104.66, 106.84, 109.02, 111.2, 113.38, 115.56, 117.74, 119.92, 122.1, 124.28, 126.5]
+                stepLoad: 2.181 // 72,700 * 30 / 1,000,000 = 2.181 M
             },
             mega: {
                 name: '巨型遗迹',
                 ratePerMin: 118000,
-                steps: [3.54, 7.08, 10.62, 14.16, 17.7, 21.24, 24.78, 28.32, 31.86, 35.4, 38.94, 42.48, 46.02, 49.56, 53.1, 56.64, 60.18, 63.72, 67.26, 70.8, 74.34, 77.88, 81.42, 84.96, 88.5, 92.04, 95.58, 99.12, 102.66, 106.2, 109.74, 113.28, 116.82, 120.36, 123.9, 127.44, 130.98, 134.52, 138.06, 141.6, 145.14, 148.68, 152.22, 155.76, 159.3, 162.84, 166.38, 169.92, 173.46, 177.0, 180.54, 184.08, 187.62, 191.16, 194.7, 198.24, 201.78, 205.32]
+                stepLoad: 3.540 // 118,000 * 30 / 1,000,000 = 3.540 M
             }
         };
 
         let currentType = 'small';
         let currentTab = 'loadMode';
 
-        // Initialize listeners and setup
+        // Helper function for rounding floating values cleanly
+        function cleanFloat(val) {
+            return Math.round(val * 1000) / 1000;
+        }
+
         window.onload = function() {
             document.querySelectorAll('.relic-card').forEach(card => {
                 card.addEventListener('click', function() {
@@ -592,7 +615,7 @@
         function addLoad(val) {
             const input = document.getElementById('loadInput');
             let cur = parseFloat(input.value) || 0;
-            input.value = (cur + val).toFixed(2);
+            input.value = cleanFloat(cur + val);
             calculateLoadMode();
         }
 
@@ -609,24 +632,14 @@
         function updateAllCalculations() {
             calculateLoadMode();
             calculateTargetMode();
-            renderTable();
         }
 
         function calculateLoadMode() {
             const relic = RELIC_DATA[currentType];
             const load = parseFloat(document.getElementById('loadInput').value) || 0;
             
-            // Find matched tier step
-            let matchedIndex = -1;
-            for (let i = 0; i < relic.steps.length; i++) {
-                if (load >= relic.steps[i]) {
-                    matchedIndex = i;
-                } else {
-                    break;
-                }
-            }
-
-            const count = matchedIndex + 1; // 0 if load < first step
+            // Mathematical formula to calculate exact matched count with NO LIMIT
+            const count = Math.floor(cleanFloat(load) / relic.stepLoad);
             const timeMins = count * 30;
             const hours = Math.floor(timeMins / 60);
             const mins = timeMins % 60;
@@ -634,83 +647,81 @@
 
             // UI updates
             document.getElementById('resCount').innerText = count + ' 次';
-            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 阶梯` : '未达到最低要求阶梯';
+            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 阶梯` : '未达到最低要求阶梯 (低于首阶)';
             document.getElementById('resTime').innerText = `${hours} 小时 ${mins} 分`;
             document.getElementById('resHours').innerText = `约 ${(timeMins / 60).toFixed(1)} 小时`;
             document.getElementById('resResource').innerText = formatNumber(totalResource);
             document.getElementById('resRate').innerText = `速率: ${formatNumber(relic.ratePerMin)}/分`;
 
-            // Gap & Progress Bar Calculation
-            let curReq = matchedIndex >= 0 ? relic.steps[matchedIndex] : 0;
-            let nextReq = matchedIndex + 1 < relic.steps.length ? relic.steps[matchedIndex + 1] : relic.steps[relic.steps.length - 1];
+            // Gap & Progress Bar Calculation using mathematical step
+            let curReq = cleanFloat(count * relic.stepLoad);
+            let nextReq = cleanFloat((count + 1) * relic.stepLoad);
             
-            if (matchedIndex + 1 >= relic.steps.length) {
-                // Maximum tier reached
-                document.getElementById('progressText').innerText = '已达到最大上限阶梯！';
-                document.getElementById('progressFill').style.width = '100%';
-                document.getElementById('curNodeText').innerText = `当前: ${load.toFixed(2)} M`;
-                document.getElementById('nextNodeText').innerText = `最高阶: ${nextReq} M`;
-            } else {
-                let gap = (nextReq - load).toFixed(2);
-                if (gap <= 0) gap = "0.00";
-                
-                let range = nextReq - curReq;
-                let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
-                if (progress < 0) progress = 0;
-                if (progress > 100) progress = 100;
+            let gap = cleanFloat(nextReq - load);
+            if (gap < 0) gap = 0;
+            
+            let range = cleanFloat(nextReq - curReq);
+            let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
+            if (progress < 0) progress = 0;
+            if (progress > 100) progress = 100;
 
-                document.getElementById('progressText').innerText = `还差 ${gap} M 载重即可达到下一阶`;
-                document.getElementById('progressFill').style.width = `${progress}%`;
-                document.getElementById('curNodeText').innerText = `当前: ${load.toFixed(2)} M (底限 ${curReq}M)`;
-                document.getElementById('nextNodeText').innerText = `目标: ${nextReq} M (+30分钟)`;
-            }
+            document.getElementById('progressText').innerText = `还差 ${gap.toFixed(3)} M 载重即可达到下一阶`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('curNodeText').innerText = `当前: ${load.toFixed(2)} M (底限 ${curReq.toFixed(3)}M)`;
+            document.getElementById('nextNodeText').innerText = `目标: ${nextReq.toFixed(3)} M (+30分钟)`;
 
-            renderTable(matchedIndex);
+            renderTable(count);
         }
 
         function calculateTargetMode() {
             const relic = RELIC_DATA[currentType];
             let count = parseInt(document.getElementById('targetCountInput').value) || 1;
             if (count < 1) count = 1;
-            if (count > relic.steps.length) count = relic.steps.length;
 
             const timeMins = count * 30;
             const hours = (timeMins / 60).toFixed(1);
-            const reqLoad = relic.steps[count - 1];
+            const reqLoad = cleanFloat(count * relic.stepLoad);
             const totalResource = timeMins * relic.ratePerMin;
 
             document.getElementById('targetHoursDisplay').innerText = hours;
-            document.getElementById('targetReqLoad').innerText = reqLoad + ' M';
+            document.getElementById('targetReqLoad').innerText = reqLoad.toFixed(3) + ' M';
             document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小时 ${timeMins%60} 分`;
             document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分钟 (${hours}小时)`;
             document.getElementById('targetTotalResource').innerText = formatNumber(totalResource);
+
+            if (currentTab === 'targetMode') {
+                renderTable(count);
+            }
         }
 
-        function renderTable(highlightIdx = -1) {
+        function renderTable(activeCount = 0) {
             const relic = RELIC_DATA[currentType];
             const tbody = document.getElementById('tableBody');
             let html = '';
 
-            for (let i = 0; i < relic.steps.length; i++) {
-                const count = i + 1;
+            // Dynamically center the table display around activeCount with infinite scalability
+            let startCount = Math.max(1, activeCount - 5);
+            let endCount = Math.max(60, activeCount + 15); // Show at least 60 steps or extend dynamically
+
+            for (let count = startCount; count <= endCount; count++) {
                 const mins = count * 30;
                 const hours = (mins / 60).toFixed(1);
-                const reqLoad = relic.steps[i];
+                const reqLoad = cleanFloat(count * relic.stepLoad).toFixed(3);
                 const totalResource = mins * relic.ratePerMin;
 
                 let rowClass = '';
                 let statusText = '-';
 
-                if (i === highlightIdx) {
+                if (count === activeCount) {
                     rowClass = 'active-row';
                     statusText = '🎯 当前匹配';
-                } else if (i === highlightIdx + 1) {
+                } else if (count === activeCount + 1) {
                     rowClass = 'next-row';
                     statusText = '⚡ 下一阶梯';
                 }
 
                 html += `
-                    <tr class="${rowClass}">
+                    <tr class="${rowClass}" id="row-step-${count}">
                         <td>第 ${count} 阶</td>
                         <td>${hours} 小时 (${mins}分)</td>
                         <td>${count} 次</td>
