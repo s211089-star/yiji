@@ -352,6 +352,7 @@
             border: 1px solid var(--border-color);
             border-radius: 8px;
             margin-top: 10px;
+            position: relative;
         }
 
         table {
@@ -383,8 +384,15 @@
         }
 
         tr.active-row {
-            background: rgba(241, 224, 90, 0.12) !important;
-            border-left: 3px solid var(--accent-gold);
+            background: rgba(241, 224, 90, 0.18) !important;
+            border-left: 4px solid var(--accent-gold);
+            font-weight: bold;
+        }
+
+        tr.target-row {
+            background: rgba(56, 189, 248, 0.18) !important;
+            border-left: 4px solid var(--accent-cyan);
+            font-weight: bold;
         }
 
         tr.next-row {
@@ -402,7 +410,7 @@
     <div class="container">
         <header>
             <h1>🏛️ 遺跡載重匹配與計算工具</h1>
-            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（支持無限載重）</p>
+            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（動態高亮與自動對齊）</p>
         </header>
 
         <!-- Relic Type Selection Header -->
@@ -410,17 +418,17 @@
             <div class="relic-card active" data-type="small">
                 <div class="title">小型遺跡</div>
                 <div class="rate">24,500 資源/分鐘</div>
-                <div class="badge">基礎級 (0.735M/30分)</div>
+                <div class="badge">基礎級 (0.74M/30分)</div>
             </div>
             <div class="relic-card" data-type="medium">
                 <div class="title">中型遺跡</div>
                 <div class="rate">44,200 資源/分鐘</div>
-                <div class="badge">進階級 (1.326M/30分)</div>
+                <div class="badge">進階級 (1.33M/30分)</div>
             </div>
             <div class="relic-card" data-type="large">
                 <div class="title">大型遺跡</div>
                 <div class="rate">72,700 資源/分鐘</div>
-                <div class="badge">高級 (2.181M/30分)</div>
+                <div class="badge">高級 (2.19M/30分)</div>
             </div>
             <div class="relic-card" data-type="mega">
                 <div class="title">巨型遺跡</div>
@@ -440,7 +448,7 @@
             <div class="panel-title">📦 輸入您的部隊總載重 (M)</div>
             <div class="input-group">
                 <div class="input-wrapper">
-                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="calculateLoadMode()">
+                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="updateAllCalculations()">
                     <span class="unit">M 載重</span>
                 </div>
                 <div class="quick-btns">
@@ -489,28 +497,28 @@
 
         <!-- TAB 2: Target Mode -->
         <div id="targetMode" class="panel hidden">
-            <div class="panel-title">🎯 選擇期望掛機時長或獲取次數</div>
+            <div class="panel-title">🎯 選擇期望獲取次數 (查所需載重)</div>
             <div class="input-group">
-                <label class="input-label">選擇目標獲取次數（每30分鐘計算1次，無上限）：</label>
+                <label class="input-label">輸入精髓獲取次數（每30分鐘獲取1次）：</label>
                 <div class="input-wrapper">
-                    <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="calculateTargetMode()">
+                    <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="updateAllCalculations()">
                     <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小時)</span>
                 </div>
                 <div class="quick-btns">
                     <button class="btn-chip" onclick="setTargetCount(4)">2小時 (4次)</button>
                     <button class="btn-chip" onclick="setTargetCount(8)">4小時 (8次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(10)">5小時 (10次)</button>
                     <button class="btn-chip" onclick="setTargetCount(16)">8小時 (16次)</button>
                     <button class="btn-chip" onclick="setTargetCount(24)">12小時 (24次)</button>
                     <button class="btn-chip" onclick="setTargetCount(48)">24小時 (48次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(100)">50小時 (100次)</button>
                 </div>
             </div>
 
             <div class="results-grid">
                 <div class="res-card">
-                    <span class="label">至少需要的載重</span>
+                    <span class="label">需要載重 (M)</span>
                     <span class="val" id="targetReqLoad" style="color: var(--accent-gold);">0 M</span>
-                    <span class="sub">低於此載重將提前爆倉</span>
+                    <span class="sub" id="targetFormulaSub">計算公式: ROUNDUP(次數 × 單次門檻, 2)</span>
                 </div>
                 <div class="res-card">
                     <span class="label">對應掛機時間</span>
@@ -527,8 +535,8 @@
 
         <!-- Tier Table Comparison Panel -->
         <div class="panel">
-            <div class="panel-title">📊 當前遺跡階梯對照表（動態適配）</div>
-            <div class="table-container">
+            <div class="panel-title">📊 當前遺跡階梯對照表（動態匹配與自動滾動定位）</div>
+            <div class="table-container" id="tableContainer">
                 <table id="tierTable">
                     <thead>
                         <tr>
@@ -549,29 +557,49 @@
     </div>
 
     <script>
-        // 遺跡基礎配置（利用線性公式：每30分鐘載重門檻 ΔLoad = 速率 * 30 / 100萬）
+        // 遺跡基礎配置（對齊 Excel 算法及 A3 單次門檻載重）
         const RELIC_CONFIG = {
             small: {
                 name: '小型遺跡',
                 ratePerMin: 24500,
-                stepLoad: 0.735 // 24500 * 30 / 1000000
+                stepLoadA3: 0.74 // Excel A3 = ROUNDUP(24500*30/1e6, 2)
             },
             medium: {
                 name: '中型遺跡',
                 ratePerMin: 44200,
-                stepLoad: 1.326 // 44200 * 30 / 1000000
+                stepLoadA3: 1.33 // Excel A3 = ROUNDUP(44200*30/1e6, 2)
             },
             large: {
                 name: '大型遺跡',
                 ratePerMin: 72700,
-                stepLoad: 2.181 // 72700 * 30 / 1000000
+                stepLoadA3: 2.19 // Excel A3 = ROUNDUP(72700*30/1e6, 2)
             },
             mega: {
                 name: '巨型遺跡',
                 ratePerMin: 118000,
-                stepLoad: 3.54 // 118000 * 30 / 1000000
+                stepLoadA3: 3.54 // Excel A3 = ROUNDUP(118000*30/1e6, 2)
             }
         };
+
+        // Excel 公式 1 (表格列): ROUNDUP($E$3 * count * 30 / 1000000, 2)
+        function getReqLoad(rate, count) {
+            if (count <= 0) return 0;
+            const raw = (rate * count * 30) / 1000000;
+            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
+        }
+
+        // Excel 公式 2 (可容納次數): ROUNDDOWN((F3 * 1000000) / (rate * 30), 0)
+        function getCapacityCount(rate, load) {
+            if (load <= 0) return 0;
+            return Math.floor((load * 1000000) / (rate * 30));
+        }
+
+        // Excel 公式 3 (反向查找 H5): ROUNDUP(H3 * A3, 2)
+        function getTargetReqLoadExcel(stepLoadA3, count) {
+            if (count <= 0) return 0;
+            const raw = count * stepLoadA3;
+            return Math.ceil(Math.round(raw * 1000000) / 10000) / 100;
+        }
 
         let currentType = 'small';
         let currentTab = 'loadMode';
@@ -612,36 +640,35 @@
             const input = document.getElementById('loadInput');
             let cur = parseFloat(input.value) || 0;
             input.value = (cur + val).toFixed(2);
-            calculateLoadMode();
+            updateAllCalculations();
         }
 
         function clearLoad() {
             document.getElementById('loadInput').value = '';
-            calculateLoadMode();
+            updateAllCalculations();
         }
 
         function setTargetCount(count) {
             document.getElementById('targetCountInput').value = count;
-            calculateTargetMode();
+            updateAllCalculations();
         }
 
         function updateAllCalculations() {
-            calculateLoadMode();
-            calculateTargetMode();
+            const matchedCount = calculateLoadMode();
+            const targetCount = calculateTargetMode();
+            renderTable(matchedCount, targetCount);
         }
 
         function calculateLoadMode() {
             const relic = RELIC_CONFIG[currentType];
             const load = parseFloat(document.getElementById('loadInput').value) || 0;
             
-            // 無上限公式計算：可容納的完整次數
-            const count = Math.floor(load / relic.stepLoad);
+            const count = getCapacityCount(relic.ratePerMin, load);
             const timeMins = count * 30;
             const hours = Math.floor(timeMins / 60);
             const mins = timeMins % 60;
             const totalResource = timeMins * relic.ratePerMin;
 
-            // UI updates
             document.getElementById('resCount').innerText = count + ' 次';
             document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 階梯` : '未達到最低要求階梯';
             document.getElementById('resTime').innerText = `${hours} 小時 ${mins} 分`;
@@ -649,24 +676,23 @@
             document.getElementById('resResource').innerText = formatNumber(totalResource);
             document.getElementById('resRate').innerText = `速率: ${formatNumber(relic.ratePerMin)}/分`;
 
-            // 計算下一個節點
-            const curReq = (count * relic.stepLoad);
-            const nextReq = ((count + 1) * relic.stepLoad);
+            const curReq = getReqLoad(relic.ratePerMin, count);
+            const nextReq = getReqLoad(relic.ratePerMin, count + 1);
             
             let gap = (nextReq - load).toFixed(2);
             if (gap <= 0) gap = "0.00";
             
-            let range = relic.stepLoad;
-            let progress = ((load - curReq) / range) * 100;
+            let range = nextReq - curReq;
+            let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
             if (progress < 0) progress = 0;
             if (progress > 100) progress = 100;
 
             document.getElementById('progressText').innerText = `還差 ${gap} M 載重即可達到下一階`;
             document.getElementById('progressFill').style.width = `${progress}%`;
-            document.getElementById('curNodeText').innerText = `當前: ${load.toFixed(2)} M (門檻 ${curReq.toFixed(2)}M)`;
+            document.getElementById('curNodeText').innerText = `當前載重: ${load.toFixed(2)} M (本階門檻 ${curReq.toFixed(2)}M)`;
             document.getElementById('nextNodeText').innerText = `目標: ${nextReq.toFixed(2)} M (+30分鐘)`;
 
-            renderTable(count);
+            return count;
         }
 
         function calculateTargetMode() {
@@ -676,44 +702,55 @@
 
             const timeMins = count * 30;
             const hours = (timeMins / 60).toFixed(1);
-            const reqLoad = (count * relic.stepLoad).toFixed(2);
+
+            const reqLoad = getTargetReqLoadExcel(relic.stepLoadA3, count).toFixed(2);
             const totalResource = timeMins * relic.ratePerMin;
 
             document.getElementById('targetHoursDisplay').innerText = hours;
             document.getElementById('targetReqLoad').innerText = reqLoad + ' M';
+            document.getElementById('targetFormulaSub').innerText = `公式: ROUNDUP(${count}次 × ${relic.stepLoadA3}M, 2)`;
             document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小時 ${timeMins%60} 分`;
             document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分鐘 (${hours}小時)`;
             document.getElementById('targetTotalResource').innerText = formatNumber(totalResource);
+
+            return count;
         }
 
-        function renderTable(currentMatchedCount) {
+        function renderTable(matchedCount, targetCount) {
             const relic = RELIC_CONFIG[currentType];
             const tbody = document.getElementById('tableBody');
             let html = '';
 
-            // 動態確定展示的表格範圍（至少展示58階，若用戶載重更高，則展示到當前匹配階數+10階）
-            const maxRows = Math.max(58, currentMatchedCount + 10);
+            const focusCount = currentTab === 'loadMode' ? matchedCount : targetCount;
+            const maxRows = Math.max(58, focusCount + 10);
 
             for (let i = 1; i <= maxRows; i++) {
                 const count = i;
                 const mins = count * 30;
                 const hours = (mins / 60).toFixed(1);
-                const reqLoad = (count * relic.stepLoad).toFixed(2);
+                const reqLoad = getReqLoad(relic.ratePerMin, count).toFixed(2);
                 const totalResource = mins * relic.ratePerMin;
 
                 let rowClass = '';
                 let statusText = '-';
 
-                if (count === currentMatchedCount) {
-                    rowClass = 'active-row';
-                    statusText = '🎯 當前匹配';
-                } else if (count === currentMatchedCount + 1) {
-                    rowClass = 'next-row';
-                    statusText = '⚡ 下一階梯';
+                if (currentTab === 'loadMode') {
+                    if (count === matchedCount) {
+                        rowClass = 'active-row';
+                        statusText = '🎯 正向匹配';
+                    } else if (count === matchedCount + 1) {
+                        rowClass = 'next-row';
+                        statusText = '⚡ 下一階梯';
+                    }
+                } else {
+                    if (count === targetCount) {
+                        rowClass = 'target-row';
+                        statusText = '🎯 目標次數';
+                    }
                 }
 
                 html += `
-                    <tr class="${rowClass}">
+                    <tr id="row-${count}" class="${rowClass}">
                         <td>第 ${count} 階</td>
                         <td>${hours} 小時 (${mins}分)</td>
                         <td>${count} 次</td>
@@ -725,6 +762,15 @@
             }
 
             tbody.innerHTML = html;
+
+            // 平滑自動滾動至高亮行
+            setTimeout(() => {
+                const activeRowId = currentTab === 'loadMode' ? `row-${matchedCount}` : `row-${targetCount}`;
+                const targetRowEl = document.getElementById(activeRowId);
+                if (targetRowEl) {
+                    targetRowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 50);
         }
     </script>
 </body>
