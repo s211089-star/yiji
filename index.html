@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>遗迹载重匹配与计算工具（无上限动态版）</title>
+    <title>遺跡載重匹配與計算工具</title>
     <style>
         :root {
             --bg-primary: #0d1117;
@@ -34,6 +34,22 @@
             min-height: 100vh;
             display: flex;
             justify-content: center;
+            position: relative;
+        }
+
+        /* 全屏平鋪文字水印效果 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.06;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'><text x='20' y='80' fill='%23ffffff' font-size='16' font-family='sans-serif' transform='rotate(-25 100 80)'>3k887忆春風出品</text></svg>");
+            background-repeat: repeat;
         }
 
         .container {
@@ -42,6 +58,8 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            position: relative;
+            z-index: 1;
         }
 
         header {
@@ -64,18 +82,6 @@
             color: var(--text-secondary);
             font-size: 0.85rem;
             margin-top: 6px;
-        }
-
-        .formula-box {
-            background: rgba(56, 189, 248, 0.05);
-            border: 1px solid var(--accent-cyan);
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 0.8rem;
-            color: var(--accent-cyan);
-            margin-top: 10px;
-            text-align: center;
-            line-height: 1.5;
         }
 
         /* Relic Type Selection Cards */
@@ -395,51 +401,47 @@
 <body>
     <div class="container">
         <header>
-            <h1>🏛️ 遗迹载重匹配与计算工具（无限阶梯版）</h1>
-            <p>基于精准数学模型公式，打破旧版限制，支持任意超高载重与任意挂机时长无上限匹配</p>
-            <div class="formula-box">
-                📐 <strong>数学原理：</strong> 每30分钟所需门槛载重 ΔLoad = 速率(资源/分) × 30分 / 1,000,000 (M)<br>
-                可匹配次数 count = ⌊ 输入载重 ÷ 单次门槛载重 ⌋ ，彻底解除阶梯上限！
-            </div>
+            <h1>🏛️ 遺跡載重匹配與計算工具</h1>
+            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（支持無限載重）</p>
         </header>
 
         <!-- Relic Type Selection Header -->
         <div class="relic-selector" id="relicSelector">
             <div class="relic-card active" data-type="small">
-                <div class="title">小型遗迹</div>
-                <div class="rate">24,500 资源/分钟</div>
-                <div class="badge">每30分钟需 0.735M</div>
+                <div class="title">小型遺跡</div>
+                <div class="rate">24,500 資源/分鐘</div>
+                <div class="badge">基礎級 (0.735M/30分)</div>
             </div>
             <div class="relic-card" data-type="medium">
-                <div class="title">中型遗迹</div>
-                <div class="rate">44,200 资源/分钟</div>
-                <div class="badge">每30分钟需 1.326M</div>
+                <div class="title">中型遺跡</div>
+                <div class="rate">44,200 資源/分鐘</div>
+                <div class="badge">進階級 (1.326M/30分)</div>
             </div>
             <div class="relic-card" data-type="large">
-                <div class="title">大型遗迹</div>
-                <div class="rate">72,700 资源/分钟</div>
-                <div class="badge">每30分钟需 2.181M</div>
+                <div class="title">大型遺跡</div>
+                <div class="rate">72,700 資源/分鐘</div>
+                <div class="badge">高級 (2.181M/30分)</div>
             </div>
             <div class="relic-card" data-type="mega">
-                <div class="title">巨型遗迹</div>
-                <div class="rate">118,000 资源/分钟</div>
-                <div class="badge">每30分钟需 3.540M</div>
+                <div class="title">巨型遺跡</div>
+                <div class="rate">118,000 資源/分鐘</div>
+                <div class="badge">史詩級 (3.54M/30分)</div>
             </div>
         </div>
 
         <!-- Mode Toggle Tabs -->
         <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('loadMode')">⚡ 正向：输入当前载重算匹配</button>
-            <button class="tab-btn" onclick="switchTab('targetMode')">🎯 反向：按时间/次数查所需载重</button>
+            <button class="tab-btn active" onclick="switchTab('loadMode')">⚡ 正向：輸入當前載重算匹配</button>
+            <button class="tab-btn" onclick="switchTab('targetMode')">🎯 反向：按時間/次數查所需載重</button>
         </div>
 
         <!-- TAB 1: Load Mode -->
         <div id="loadMode" class="panel">
-            <div class="panel-title">📦 输入您的部队总载重 (M)</div>
+            <div class="panel-title">📦 輸入您的部隊總載重 (M)</div>
             <div class="input-group">
                 <div class="input-wrapper">
-                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58 或 250.0" step="0.01" min="0" value="7.58" oninput="calculateLoadMode()">
-                    <span class="unit">M 载重</span>
+                    <input type="number" id="loadInput" class="custom-input" placeholder="例如: 7.58" step="0.01" min="0" value="7.58" oninput="calculateLoadMode()">
+                    <span class="unit">M 載重</span>
                 </div>
                 <div class="quick-btns">
                     <button class="btn-chip" onclick="addLoad(1)">+1M</button>
@@ -453,17 +455,17 @@
 
             <div class="results-grid">
                 <div class="res-card">
-                    <span class="label">可容纳获取次数</span>
+                    <span class="label">可容納獲取次數</span>
                     <span class="val" id="resCount" style="color: var(--accent-gold);">0 次</span>
-                    <span class="sub" id="resStepIndex">对应第 0 阶梯</span>
+                    <span class="sub" id="resStepIndex">對應第 0 階梯</span>
                 </div>
                 <div class="res-card">
-                    <span class="label">最长可挂机时间</span>
-                    <span class="val" id="resTime" style="color: var(--accent-cyan);">0 小时 0 分</span>
-                    <span class="sub" id="resHours">约 0.0 小时</span>
+                    <span class="label">最長可掛機時間</span>
+                    <span class="val" id="resTime" style="color: var(--accent-cyan);">0 小時 0 分</span>
+                    <span class="sub" id="resHours">約 0.0 小時</span>
                 </div>
                 <div class="res-card">
-                    <span class="label">预计获取资源总量</span>
+                    <span class="label">預計獲取資源總量</span>
                     <span class="val" id="resResource" style="color: var(--accent-purple);">0</span>
                     <span class="sub" id="resRate">速率: 0/分</span>
                 </div>
@@ -472,71 +474,70 @@
             <!-- Distance to Next Tier Progress Bar -->
             <div class="progress-box">
                 <div class="progress-header">
-                    <span>🚀 距离下一个载重点差距</span>
-                    <span id="progressText" class="gap-highlight">还差 0.00 M</span>
+                    <span>🚀 距離下一個載重點差距</span>
+                    <span id="progressText" class="gap-highlight">還差 0.00 M</span>
                 </div>
                 <div class="progress-track">
                     <div class="progress-fill" id="progressFill"></div>
                 </div>
                 <div class="progress-footer">
-                    <span id="curNodeText">当前: 0 M</span>
-                    <span id="nextNodeText">下一目标: 0 M (+30分钟)</span>
+                    <span id="curNodeText">當前: 0 M</span>
+                    <span id="nextNodeText">下一目標: 0 M (+30分鐘)</span>
                 </div>
             </div>
         </div>
 
         <!-- TAB 2: Target Mode -->
         <div id="targetMode" class="panel hidden">
-            <div class="panel-title">🎯 选择期望挂机时长或获取次数（支持任意大数值）</div>
+            <div class="panel-title">🎯 選擇期望掛機時長或獲取次數</div>
             <div class="input-group">
-                <label class="input-label">选择目标获取次数（每30分钟计算1次）：</label>
+                <label class="input-label">選擇目標獲取次數（每30分鐘計算1次，無上限）：</label>
                 <div class="input-wrapper">
                     <input type="number" id="targetCountInput" class="custom-input" min="1" value="10" oninput="calculateTargetMode()">
-                    <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小时)</span>
+                    <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小時)</span>
                 </div>
                 <div class="quick-btns">
-                    <button class="btn-chip" onclick="setTargetCount(4)">2小时 (4次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(8)">4小时 (8次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(16)">8小时 (16次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(24)">12小时 (24次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(48)">24小时 (48次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(96)">48小时 (96次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(144)">72小时 (144次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(4)">2小時 (4次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(8)">4小時 (8次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(16)">8小時 (16次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(24)">12小時 (24次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(48)">24小時 (48次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(100)">50小時 (100次)</button>
                 </div>
             </div>
 
             <div class="results-grid">
                 <div class="res-card">
-                    <span class="label">至少需要的载重</span>
+                    <span class="label">至少需要的載重</span>
                     <span class="val" id="targetReqLoad" style="color: var(--accent-gold);">0 M</span>
-                    <span class="sub">低于此载重将提前爆仓</span>
+                    <span class="sub">低於此載重將提前爆倉</span>
                 </div>
                 <div class="res-card">
-                    <span class="label">对应挂机时间</span>
-                    <span class="val" id="targetDuration" style="color: var(--accent-cyan);">0 小时</span>
-                    <span class="sub" id="targetTotalMins">共 0 分钟</span>
+                    <span class="label">對應掛機時間</span>
+                    <span class="val" id="targetDuration" style="color: var(--accent-cyan);">0 小時</span>
+                    <span class="sub" id="targetTotalMins">共 0 分鐘</span>
                 </div>
                 <div class="res-card">
-                    <span class="label">可收集资源总量</span>
+                    <span class="label">可收集資源總量</span>
                     <span class="val" id="targetTotalResource" style="color: var(--accent-green);">0</span>
-                    <span class="sub">全额无溢出收货</span>
+                    <span class="sub">全額無溢出收貨</span>
                 </div>
             </div>
         </div>
 
         <!-- Tier Table Comparison Panel -->
         <div class="panel">
-            <div class="panel-title">📊 阶梯对比动态列表 (自动对齐当前匹配位置)</div>
-            <div class="table-container" id="tableContainer">
+            <div class="panel-title">📊 當前遺跡階梯對照表（動態適配）</div>
+            <div class="table-container">
                 <table id="tierTable">
                     <thead>
                         <tr>
-                            <th>序号</th>
-                            <th>挂机时长</th>
-                            <th>获取次数</th>
-                            <th>门槛载重 (M)</th>
-                            <th>累计资源数量</th>
-                            <th>状态匹配</th>
+                            <th>序號</th>
+                            <th>掛機時長</th>
+                            <th>獲取次數</th>
+                            <th>門檻載重 (M)</th>
+                            <th>累計資源數量</th>
+                            <th>狀態匹配</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
@@ -548,37 +549,32 @@
     </div>
 
     <script>
-        // Relic definitions with exact linear step size per 30 minutes
-        const RELIC_DATA = {
+        // 遺跡基礎配置（利用線性公式：每30分鐘載重門檻 ΔLoad = 速率 * 30 / 100萬）
+        const RELIC_CONFIG = {
             small: {
-                name: '小型遗迹',
+                name: '小型遺跡',
                 ratePerMin: 24500,
-                stepLoad: 0.735 // 24,500 * 30 / 1,000,000 = 0.735 M
+                stepLoad: 0.735 // 24500 * 30 / 1000000
             },
             medium: {
-                name: '中型遗迹',
+                name: '中型遺跡',
                 ratePerMin: 44200,
-                stepLoad: 1.326 // 44,200 * 30 / 1,000,000 = 1.326 M
+                stepLoad: 1.326 // 44200 * 30 / 1000000
             },
             large: {
-                name: '大型遗迹',
+                name: '大型遺跡',
                 ratePerMin: 72700,
-                stepLoad: 2.181 // 72,700 * 30 / 1,000,000 = 2.181 M
+                stepLoad: 2.181 // 72700 * 30 / 1000000 (四捨五入匹配原始數據2.181M)
             },
             mega: {
-                name: '巨型遗迹',
+                name: '巨型遺跡',
                 ratePerMin: 118000,
-                stepLoad: 3.540 // 118,000 * 30 / 1,000,000 = 3.540 M
+                stepLoad: 3.54 // 118000 * 30 / 1000000
             }
         };
 
         let currentType = 'small';
         let currentTab = 'loadMode';
-
-        // Helper function for rounding floating values cleanly
-        function cleanFloat(val) {
-            return Math.round(val * 1000) / 1000;
-        }
 
         window.onload = function() {
             document.querySelectorAll('.relic-card').forEach(card => {
@@ -609,13 +605,13 @@
         }
 
         function formatNumber(num) {
-            return num.toLocaleString('zh-CN');
+            return Math.round(num).toLocaleString('zh-CN');
         }
 
         function addLoad(val) {
             const input = document.getElementById('loadInput');
             let cur = parseFloat(input.value) || 0;
-            input.value = cleanFloat(cur + val);
+            input.value = (cur + val).toFixed(2);
             calculateLoadMode();
         }
 
@@ -635,11 +631,11 @@
         }
 
         function calculateLoadMode() {
-            const relic = RELIC_DATA[currentType];
+            const relic = RELIC_CONFIG[currentType];
             const load = parseFloat(document.getElementById('loadInput').value) || 0;
             
-            // Mathematical formula to calculate exact matched count with NO LIMIT
-            const count = Math.floor(cleanFloat(load) / relic.stepLoad);
+            // 無上限公式计算：可容纳的完整次数
+            const count = Math.floor(load / relic.stepLoad);
             const timeMins = count * 30;
             const hours = Math.floor(timeMins / 60);
             const mins = timeMins % 60;
@@ -647,83 +643,79 @@
 
             // UI updates
             document.getElementById('resCount').innerText = count + ' 次';
-            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 阶梯` : '未达到最低要求阶梯 (低于首阶)';
-            document.getElementById('resTime').innerText = `${hours} 小时 ${mins} 分`;
-            document.getElementById('resHours').innerText = `约 ${(timeMins / 60).toFixed(1)} 小时`;
+            document.getElementById('resStepIndex').innerText = count > 0 ? `匹配第 ${count} 階梯` : '未達到最低要求階梯';
+            document.getElementById('resTime').innerText = `${hours} 小時 ${mins} 分`;
+            document.getElementById('resHours').innerText = `約 ${(timeMins / 60).toFixed(1)} 小時`;
             document.getElementById('resResource').innerText = formatNumber(totalResource);
             document.getElementById('resRate').innerText = `速率: ${formatNumber(relic.ratePerMin)}/分`;
 
-            // Gap & Progress Bar Calculation using mathematical step
-            let curReq = cleanFloat(count * relic.stepLoad);
-            let nextReq = cleanFloat((count + 1) * relic.stepLoad);
+            // 計算下一個節點
+            const curReq = (count * relic.stepLoad);
+            const nextReq = ((count + 1) * relic.stepLoad);
             
-            let gap = cleanFloat(nextReq - load);
-            if (gap < 0) gap = 0;
+            let gap = (nextReq - load).toFixed(2);
+            if (gap <= 0) gap = "0.00";
             
-            let range = cleanFloat(nextReq - curReq);
-            let progress = range > 0 ? ((load - curReq) / range) * 100 : 0;
+            let range = relic.stepLoad;
+            let progress = ((load - curReq) / range) * 100;
             if (progress < 0) progress = 0;
             if (progress > 100) progress = 100;
 
-            document.getElementById('progressText').innerText = `还差 ${gap.toFixed(3)} M 载重即可达到下一阶`;
+            document.getElementById('progressText').innerText = `還差 ${gap} M 載重即可達到下一階`;
             document.getElementById('progressFill').style.width = `${progress}%`;
-            document.getElementById('curNodeText').innerText = `当前: ${load.toFixed(2)} M (底限 ${curReq.toFixed(3)}M)`;
-            document.getElementById('nextNodeText').innerText = `目标: ${nextReq.toFixed(3)} M (+30分钟)`;
+            document.getElementById('curNodeText').innerText = `當前: ${load.toFixed(2)} M (門檻 ${curReq.toFixed(2)}M)`;
+            document.getElementById('nextNodeText').innerText = `目標: ${nextReq.toFixed(2)} M (+30分鐘)`;
 
             renderTable(count);
         }
 
         function calculateTargetMode() {
-            const relic = RELIC_DATA[currentType];
+            const relic = RELIC_CONFIG[currentType];
             let count = parseInt(document.getElementById('targetCountInput').value) || 1;
             if (count < 1) count = 1;
 
             const timeMins = count * 30;
             const hours = (timeMins / 60).toFixed(1);
-            const reqLoad = cleanFloat(count * relic.stepLoad);
+            const reqLoad = (count * relic.stepLoad).toFixed(2);
             const totalResource = timeMins * relic.ratePerMin;
 
             document.getElementById('targetHoursDisplay').innerText = hours;
-            document.getElementById('targetReqLoad').innerText = reqLoad.toFixed(3) + ' M';
-            document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小时 ${timeMins%60} 分`;
-            document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分钟 (${hours}小时)`;
+            document.getElementById('targetReqLoad').innerText = reqLoad + ' M';
+            document.getElementById('targetDuration').innerText = `${Math.floor(timeMins/60)} 小時 ${timeMins%60} 分`;
+            document.getElementById('targetTotalMins').innerText = `共 ${timeMins} 分鐘 (${hours}小時)`;
             document.getElementById('targetTotalResource').innerText = formatNumber(totalResource);
-
-            if (currentTab === 'targetMode') {
-                renderTable(count);
-            }
         }
 
-        function renderTable(activeCount = 0) {
-            const relic = RELIC_DATA[currentType];
+        function renderTable(currentMatchedCount) {
+            const relic = RELIC_CONFIG[currentType];
             const tbody = document.getElementById('tableBody');
             let html = '';
 
-            // Dynamically center the table display around activeCount with infinite scalability
-            let startCount = Math.max(1, activeCount - 5);
-            let endCount = Math.max(60, activeCount + 15); // Show at least 60 steps or extend dynamically
+            // 動態確定展示的表格範圍（至少展示58階，若用戶載重更高，則展示到當前匹配階數+10階）
+            const maxRows = Math.max(58, currentMatchedCount + 10);
 
-            for (let count = startCount; count <= endCount; count++) {
+            for (let i = 1; i <= maxRows; i++) {
+                const count = i;
                 const mins = count * 30;
                 const hours = (mins / 60).toFixed(1);
-                const reqLoad = cleanFloat(count * relic.stepLoad).toFixed(3);
+                const reqLoad = (count * relic.stepLoad).toFixed(2);
                 const totalResource = mins * relic.ratePerMin;
 
                 let rowClass = '';
                 let statusText = '-';
 
-                if (count === activeCount) {
+                if (count === currentMatchedCount) {
                     rowClass = 'active-row';
-                    statusText = '🎯 当前匹配';
-                } else if (count === activeCount + 1) {
+                    statusText = '🎯 當前匹配';
+                } else if (count === currentMatchedCount + 1) {
                     rowClass = 'next-row';
-                    statusText = '⚡ 下一阶梯';
+                    statusText = '⚡ 下一階梯';
                 }
 
                 html += `
-                    <tr class="${rowClass}" id="row-step-${count}">
-                        <td>第 ${count} 阶</td>
-                        <td>${hours} 小时 (${mins}分)</td>
+                    <tr class="${rowClass}">
+                        <td>第 ${count} 階</td>
+                        <td>${hours} 小時 (${mins}分)</td>
                         <td>${count} 次</td>
                         <td><strong>${reqLoad} M</strong></td>
                         <td>${formatNumber(totalResource)}</td>
