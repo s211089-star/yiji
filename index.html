@@ -379,7 +379,12 @@
             color: var(--text-primary);
         }
 
-        tr:hover {
+        tbody tr {
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        tbody tr:hover {
             background: var(--bg-card-hover);
         }
 
@@ -410,7 +415,7 @@
     <div class="container">
         <header>
             <h1>🏛️ 遺跡載重匹配與計算工具</h1>
-            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（動態高亮與自動對齊）</p>
+            <p>實時精準計算遺跡掛機載重需求、掛機時長及下一節點階梯差距（支持正反向雙向動態點擊）</p>
         </header>
 
         <!-- Relic Type Selection Header -->
@@ -497,7 +502,7 @@
 
         <!-- TAB 2: Target Mode -->
         <div id="targetMode" class="panel hidden">
-            <div class="panel-title">🎯 選擇期望獲取次數 (查所需載重)</div>
+            <div class="panel-title">🎯 選擇期望獲取次數/時長 (查所需載重)</div>
             <div class="input-group">
                 <label class="input-label">輸入精髓獲取次數（每30分鐘獲取1次）：</label>
                 <div class="input-wrapper">
@@ -505,12 +510,15 @@
                     <span class="unit">次 (即 <span id="targetHoursDisplay">5.0</span> 小時)</span>
                 </div>
                 <div class="quick-btns">
-                    <button class="btn-chip" onclick="setTargetCount(4)">2小時 (4次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(8)">4小時 (8次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(10)">5小時 (10次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(16)">8小時 (16次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(24)">12小時 (24次)</button>
-                    <button class="btn-chip" onclick="setTargetCount(48)">24小時 (48次)</button>
+                    <button class="btn-chip" onclick="addTargetCount(-10)">-10次</button>
+                    <button class="btn-chip" onclick="addTargetCount(-1)">-1次</button>
+                    <button class="btn-chip" onclick="addTargetCount(1)">+1次</button>
+                    <button class="btn-chip" onclick="addTargetCount(5)">+5次</button>
+                    <button class="btn-chip" onclick="addTargetCount(10)">+10次</button>
+                    <button class="btn-chip" onclick="setTargetCount(16)">8小時(16次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(24)">12小時(24次)</button>
+                    <button class="btn-chip" onclick="setTargetCount(48)">24小時(48次)</button>
+                    <button class="btn-chip clear" onclick="clearTargetCount()">重置</button>
                 </div>
             </div>
 
@@ -535,7 +543,7 @@
 
         <!-- Tier Table Comparison Panel -->
         <div class="panel">
-            <div class="panel-title">📊 當前遺跡階梯對照表（動態匹配與自動滾動定位）</div>
+            <div class="panel-title">📊 當前遺跡階梯對照表（💡 點擊任意行可動態帶入值）</div>
             <div class="table-container" id="tableContainer">
                 <table id="tierTable">
                     <thead>
@@ -636,10 +644,11 @@
             return Math.round(num).toLocaleString('zh-CN');
         }
 
+        // 正向微調
         function addLoad(val) {
             const input = document.getElementById('loadInput');
             let cur = parseFloat(input.value) || 0;
-            input.value = (cur + val).toFixed(2);
+            input.value = Math.max(0, cur + val).toFixed(2);
             updateAllCalculations();
         }
 
@@ -648,8 +657,31 @@
             updateAllCalculations();
         }
 
+        // 反向動態微調
+        function addTargetCount(val) {
+            const input = document.getElementById('targetCountInput');
+            let cur = parseInt(input.value) || 1;
+            input.value = Math.max(1, cur + val);
+            updateAllCalculations();
+        }
+
         function setTargetCount(count) {
-            document.getElementById('targetCountInput').value = count;
+            document.getElementById('targetCountInput').value = Math.max(1, count);
+            updateAllCalculations();
+        }
+
+        function clearTargetCount() {
+            document.getElementById('targetCountInput').value = 1;
+            updateAllCalculations();
+        }
+
+        // 點擊表格行時雙向動態聯動
+        function selectRow(count, reqLoad) {
+            if (currentTab === 'loadMode') {
+                document.getElementById('loadInput').value = reqLoad;
+            } else {
+                document.getElementById('targetCountInput').value = count;
+            }
             updateAllCalculations();
         }
 
@@ -732,12 +764,12 @@
                 const totalResource = mins * relic.ratePerMin;
 
                 let rowClass = '';
-                let statusText = '-';
+                let statusText = '點擊套用';
 
                 if (currentTab === 'loadMode') {
                     if (count === matchedCount) {
                         rowClass = 'active-row';
-                        statusText = '🎯 正向匹配';
+                        statusText = '🎯 當前匹配';
                     } else if (count === matchedCount + 1) {
                         rowClass = 'next-row';
                         statusText = '⚡ 下一階梯';
@@ -750,7 +782,7 @@
                 }
 
                 html += `
-                    <tr id="row-${count}" class="${rowClass}">
+                    <tr id="row-${count}" class="${rowClass}" onclick="selectRow(${count}, ${reqLoad})">
                         <td>第 ${count} 階</td>
                         <td>${hours} 小時 (${mins}分)</td>
                         <td>${count} 次</td>
@@ -770,7 +802,7 @@
                 if (targetRowEl) {
                     targetRowEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-            }, 50);
+            }, 80);
         }
     </script>
 </body>
