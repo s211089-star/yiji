@@ -48,7 +48,7 @@
             pointer-events: none;
             z-index: 9999;
             opacity: 0.06;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'><text x='20' y='80' fill='%23ffffff' font-size='16' font-family='sans-serif' transform='rotate(-25 100 80)'>3k887忆春風出品</text></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='150'><text x='20' y='80' fill='%23ffffff' font-size='16' font-family='sans-serif' transform='rotate(-25 100 80)'>3k887忆春风出品</text></svg>");
             background-repeat: repeat;
         }
 
@@ -564,7 +564,7 @@
             large: {
                 name: '大型遺跡',
                 ratePerMin: 72700,
-                stepLoad: 2.181 // 72700 * 30 / 1000000 (四捨五入匹配原始數據2.181M)
+                stepLoad: 2.181 // 72700 * 30 / 1000000
             },
             mega: {
                 name: '巨型遺跡',
@@ -634,7 +634,7 @@
             const relic = RELIC_CONFIG[currentType];
             const load = parseFloat(document.getElementById('loadInput').value) || 0;
             
-            // 無上限公式计算：可容纳的完整次数
+            // 無上限公式計算：可容納的完整次數
             const count = Math.floor(load / relic.stepLoad);
             const timeMins = count * 30;
             const hours = Math.floor(timeMins / 60);
